@@ -1,22 +1,12 @@
 /* tslint:disable */
 
 import { ConcreteFragment } from "relay-runtime";
+import { ShippingAddress_order$ref } from "./ShippingAddress_order.graphql";
 declare const _ShippingAndPaymentSummary_order$ref: unique symbol;
 export type ShippingAndPaymentSummary_order$ref = typeof _ShippingAndPaymentSummary_order$ref;
 export type ShippingAndPaymentSummary_order = {
     readonly requestedFulfillment: ({
-        readonly __typename: "Ship";
-        readonly name: string | null;
-        readonly addressLine1: string | null;
-        readonly addressLine2: string | null;
-        readonly city: string | null;
-        readonly postalCode: string | null;
-        readonly region: string | null;
-        readonly country: string;
-    } | {
-        /*This will never be '% other', but we need some
-        value in case none of the concrete values match.*/
-        readonly __typename: "%other";
+        readonly __typename: string;
     }) | null;
     readonly lineItems: ({
         readonly edges: ReadonlyArray<({
@@ -33,7 +23,7 @@ export type ShippingAndPaymentSummary_order = {
         readonly expiration_year: number;
         readonly expiration_month: number;
     }) | null;
-    readonly buyerPhoneNumber: string | null;
+    readonly " $fragmentRefs": ShippingAddress_order$ref;
     readonly " $refType": ShippingAndPaymentSummary_order$ref;
 };
 
@@ -62,6 +52,11 @@ return {
   "argumentDefinitions": [],
   "selections": [
     {
+      "kind": "FragmentSpread",
+      "name": "ShippingAddress_order",
+      "args": null
+    },
+    {
       "kind": "LinkedField",
       "alias": null,
       "name": "requestedFulfillment",
@@ -76,61 +71,6 @@ return {
           "name": "__typename",
           "args": null,
           "storageKey": null
-        },
-        {
-          "kind": "InlineFragment",
-          "type": "Ship",
-          "selections": [
-            {
-              "kind": "ScalarField",
-              "alias": null,
-              "name": "name",
-              "args": null,
-              "storageKey": null
-            },
-            {
-              "kind": "ScalarField",
-              "alias": null,
-              "name": "addressLine1",
-              "args": null,
-              "storageKey": null
-            },
-            {
-              "kind": "ScalarField",
-              "alias": null,
-              "name": "addressLine2",
-              "args": null,
-              "storageKey": null
-            },
-            {
-              "kind": "ScalarField",
-              "alias": null,
-              "name": "city",
-              "args": null,
-              "storageKey": null
-            },
-            {
-              "kind": "ScalarField",
-              "alias": null,
-              "name": "postalCode",
-              "args": null,
-              "storageKey": null
-            },
-            {
-              "kind": "ScalarField",
-              "alias": null,
-              "name": "region",
-              "args": null,
-              "storageKey": null
-            },
-            {
-              "kind": "ScalarField",
-              "alias": null,
-              "name": "country",
-              "args": null,
-              "storageKey": null
-            }
-          ]
         }
       ]
     },
@@ -227,16 +167,9 @@ return {
         v0
       ]
     },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "buyerPhoneNumber",
-      "args": null,
-      "storageKey": null
-    },
     v1
   ]
 };
 })();
-(node as any).hash = '2dda3424744cd625f0d925f606ea5f40';
+(node as any).hash = '04210e6ab8e0e09033d8cae6c2834d16';
 export default node;
