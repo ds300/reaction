@@ -1,7 +1,12 @@
-import { Button, Flex, Message, Sans, Spacer } from "@artsy/palette"
-import { Offer_order } from "__generated__/Offer_order.graphql"
-import { OfferMutation } from "__generated__/OfferMutation.graphql"
-import { ArtworkSummaryItemFragmentContainer } from "Apps/Order/Components/ArtworkSummaryItem"
+import {
+  BorderedRadio,
+  Button,
+  Collapse,
+  Flex,
+  RadioGroup,
+  Spacer,
+} from "@artsy/palette"
+import { Respond_order } from "__generated__/Respond_order.graphql"
 import { Helper } from "Apps/Order/Components/Helper"
 import { TransactionDetailsSummaryItemFragmentContainer } from "Apps/Order/Components/TransactionDetailsSummaryItem"
 import { TwoColumnLayout } from "Apps/Order/Components/TwoColumnLayout"
@@ -10,39 +15,44 @@ import { Input } from "Components/Input"
 import { ErrorModal } from "Components/Modal/ErrorModal"
 import { Router } from "found"
 import React, { Component } from "react"
-import {
-  commitMutation,
-  createFragmentContainer,
-  graphql,
-  RelayProp,
-} from "react-relay"
+import { createFragmentContainer, graphql, RelayProp } from "react-relay"
+import { StepSummaryItem } from "Styleguide/Components"
 import { Col, Row } from "Styleguide/Elements/Grid"
+import { Placeholder } from "Styleguide/Utils"
 import { HorizontalPadding } from "Styleguide/Utils/HorizontalPadding"
 import { get } from "Utils/get"
 import createLogger from "Utils/logger"
 import { Media } from "Utils/Responsive"
-import { offerFlowSteps, OrderStepper } from "../../Components/OrderStepper"
+import { ArtworkSummaryItemFragmentContainer } from "../../Components/ArtworkSummaryItem"
+import { CreditCardSummaryItemFragmentContainer } from "../../Components/CreditCardSummaryItem"
+import {
+  counterofferFlowSteps,
+  OrderStepper,
+} from "../../Components/OrderStepper"
+import { ShippingSummaryItemFragmentContainer } from "../../Components/ShippingSummaryItem"
 
-export interface OfferProps {
-  order: Offer_order
+export interface RespondProps {
+  order: Respond_order
   mediator: Mediator
   relay?: RelayProp
   router: Router
 }
 
-export interface OfferState {
+export interface RespondState {
   offerValue: number | null
+  responseOption: "ACCEPT" | "COUNTER" | "DECLINE" | null
   isCommittingMutation: boolean
   isErrorModalOpen: boolean
   errorModalTitle: string
   errorModalMessage: string
 }
 
-const logger = createLogger("Order/Routes/Offer/index.tsx")
+const logger = createLogger("Order/Routes/Respond/index.tsx")
 
-export class OfferRoute extends Component<OfferProps, OfferState> {
+export class RespondRoute extends Component<RespondProps, RespondState> {
   state = {
     offerValue: null,
+    responseOption: null,
     isCommittingMutation: false,
     isErrorModalOpen: false,
     errorModalTitle: null,
@@ -51,61 +61,8 @@ export class OfferRoute extends Component<OfferProps, OfferState> {
 
   onContinueButtonPressed: () => void = () => {
     this.setState({ isCommittingMutation: true }, () => {
-      if (this.props.relay && this.props.relay.environment) {
-        const { offerValue } = this.state
-        commitMutation<OfferMutation>(this.props.relay.environment, {
-          mutation: graphql`
-            mutation OfferMutation($input: InitialOfferInput!) {
-              ecommerceInitialOffer(input: $input) {
-                orderOrError {
-                  ... on OrderWithMutationSuccess {
-                    __typename
-                    order {
-                      id
-                      mode
-                      itemsTotal
-                      totalListPrice
-                      lastOffer {
-                        id
-                        amountCents
-                      }
-                    }
-                  }
-                  ... on OrderWithMutationFailure {
-                    error {
-                      type
-                      code
-                      data
-                    }
-                  }
-                }
-              }
-            }
-          `,
-          variables: {
-            input: {
-              orderId: this.props.order.id,
-              offerPrice: {
-                amount: offerValue,
-                currencyCode: "USD",
-              },
-            },
-          },
-          onCompleted: data => {
-            this.setState({ isCommittingMutation: false })
-            const {
-              ecommerceInitialOffer: { orderOrError },
-            } = data
-
-            if (orderOrError.error) {
-              this.onMutationError(orderOrError.error)
-            } else {
-              this.props.router.push(`/orders/${this.props.order.id}/shipping`)
-            }
-          },
-          onError: this.onMutationError.bind(this),
-        })
-      }
+      window.alert("You did a click!")
+      this.setState({ isCommittingMutation: false })
     })
   }
 
@@ -136,7 +93,10 @@ export class OfferRoute extends Component<OfferProps, OfferState> {
         <HorizontalPadding px={[0, 4]}>
           <Row>
             <Col>
-              <OrderStepper currentStep="Offer" steps={offerFlowSteps} />
+              <OrderStepper
+                currentStep="Respond"
+                steps={counterofferFlowSteps}
+              />
             </Col>
           </Row>
         </HorizontalPadding>
@@ -149,32 +109,53 @@ export class OfferRoute extends Component<OfferProps, OfferState> {
                 style={isCommittingMutation ? { pointerEvents: "none" } : {}}
               >
                 <Flex flexDirection="column">
-                  <Input
-                    id="OfferForm_offerValue"
-                    title="Your offer"
-                    type="number"
-                    defaultValue={null}
-                    onChange={ev =>
-                      this.setState({
-                        offerValue: Math.floor(
-                          Number(ev.currentTarget.value || "0")
-                        ),
-                      })
-                    }
-                    block
+                  <StepSummaryItem>
+                    <Placeholder name="Timer" />
+                  </StepSummaryItem>
+                  <StepSummaryItem>
+                    <Placeholder name="Offer history" />
+                  </StepSummaryItem>
+                  <TransactionDetailsSummaryItemFragmentContainer
+                    order={order}
                   />
                 </Flex>
-                {Boolean(order.itemsTotal) && (
-                  <Sans size="2" color="black60">
-                    List price: {order.itemsTotal}
-                  </Sans>
-                )}
                 <Spacer mb={[2, 3]} />
-                <Message p={[2, 3]}>
-                  If your offer is accepted the seller will confirm and ship the
-                  work to you immediately.
-                </Message>
-                <Spacer mb={[2, 3]} />
+                <RadioGroup
+                  onSelect={(responseOption: any) =>
+                    this.setState({ responseOption })
+                  }
+                  defaultValue={this.state.responseOption}
+                >
+                  <BorderedRadio value="ACCEPT">
+                    Accept seller's offer
+                  </BorderedRadio>
+
+                  <BorderedRadio value="COUNTER">
+                    Send a counteroffer
+                    <Collapse open={this.state.responseOption === "COUNTER"}>
+                      <Spacer mb={2} />
+                      <Input
+                        id="RespondForm_RespondValue"
+                        title="Your offer"
+                        type="number"
+                        defaultValue={null}
+                        onChange={ev =>
+                          this.setState({
+                            offerValue: Math.floor(
+                              Number(ev.currentTarget.value || "0")
+                            ),
+                          })
+                        }
+                        block
+                      />
+                    </Collapse>
+                  </BorderedRadio>
+                  <BorderedRadio value="DECLINE">
+                    Decline seller's offer
+                  </BorderedRadio>
+                </RadioGroup>
+                <Spacer mb={3} />
+                <Flex flexDirection="column" />
                 <Media greaterThan="xs">
                   <Button
                     onClick={this.onContinueButtonPressed}
@@ -191,16 +172,10 @@ export class OfferRoute extends Component<OfferProps, OfferState> {
               <Flex flexDirection="column">
                 <Flex flexDirection="column">
                   <ArtworkSummaryItemFragmentContainer order={order} />
-                  <TransactionDetailsSummaryItemFragmentContainer
+                  <ShippingSummaryItemFragmentContainer order={order} locked />
+                  <CreditCardSummaryItemFragmentContainer
                     order={order}
-                    offerOverride={
-                      this.state.offerValue &&
-                      this.state.offerValue.toLocaleString("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                        minimumFractionDigits: 2,
-                      })
-                    }
+                    locked
                   />
                 </Flex>
                 <Spacer mb={[2, 3]} />
@@ -235,18 +210,18 @@ export class OfferRoute extends Component<OfferProps, OfferState> {
   }
 }
 
-const OfferRouteWrapper = props => (
+const RespondRouteWrapper = props => (
   <ContextConsumer>
     {({ mediator }) => {
-      return <OfferRoute {...props} mediator={mediator} />
+      return <RespondRoute {...props} mediator={mediator} />
     }}
   </ContextConsumer>
 )
 
-export const OfferFragmentContainer = createFragmentContainer(
-  OfferRouteWrapper,
+export const RespondFragmentContainer = createFragmentContainer(
+  RespondRouteWrapper,
   graphql`
-    fragment Offer_order on Order {
+    fragment Respond_order on Order {
       id
       mode
       state
@@ -261,8 +236,10 @@ export const OfferFragmentContainer = createFragmentContainer(
           }
         }
       }
-      ...ArtworkSummaryItem_order
       ...TransactionDetailsSummaryItem_order
+      ...ArtworkSummaryItem_order
+      ...ShippingSummaryItem_order
+      ...CreditCardSummaryItem_order
     }
   `
 )
