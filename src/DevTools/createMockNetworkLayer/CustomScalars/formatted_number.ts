@@ -1,8 +1,8 @@
 // Vendored as-is from https://github.com/artsy/metaphysics/blob/e6b183bedd8402d2a96458d992360fa0ad852c64/src/schema/types/formatted_number.js
 
-import { GraphQLScalarType } from "graphql"
 import { GraphQLError } from "graphql/error"
 import { Kind } from "graphql/language"
+import { GraphQLScalarType } from "graphql/type/definition"
 
 const FormattedNumber = new GraphQLScalarType({
   name: "FormattedNumber",

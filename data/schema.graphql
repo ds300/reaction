@@ -5383,7 +5383,7 @@ type OfferOrder implements Order {
   ): String
 
   # Current User's latest offer
-  myLastOffer: Offer
+  myLastOffer: Offer!
 
   # Waiting for one participants response
   awaitingResponseFrom: OrderParticipantEnum

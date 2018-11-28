@@ -6,7 +6,7 @@ import {
 } from "Apps/__tests__/Fixtures/Artwork/ArtworkBanner"
 import { ArtworkBannerFragmentContainer } from "Apps/Artwork/Components/ArtworkBanner"
 import { renderRelayTree } from "DevTools"
-import { GraphQLResolveInfo } from "graphql"
+import { GraphQLResolveInfo } from "graphql/type/definition"
 import { graphql } from "react-relay"
 
 jest.unmock("react-relay")
