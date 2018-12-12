@@ -303,12 +303,14 @@ describe("Payment", () => {
 
     // flush promise queue
     await Promise.resolve()
-    // again for some reason?
     await Promise.resolve()
-    // still not updated though
-    console.log("updated", paymentRoute.find(ErrorModal).props())
 
-    expect(paymentRoute.find(ErrorModal).props().show).toBe(true)
+    expect(
+      paymentRoute
+        .update()
+        .find(ErrorModal)
+        .props().show
+    ).toBe(true)
   })
 
   it("commits setOrderPayment mutation with Gravity credit card id", async () => {
