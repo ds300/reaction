@@ -35,6 +35,10 @@ export const createMockNetworkLayer2 = (
       fieldResolver: ((source, _args, _context, info) => {
         // source is null for aliased root fields
         source = source || queryData
+        // sometimes graphql is not calling the function
+        if (typeof source === "function") {
+          source = source(null, _args, _context, info)
+        }
         if (source) {
           if (info.fieldName in source) {
             return source[info.fieldName]
