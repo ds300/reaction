@@ -1,12 +1,14 @@
 /* tslint:disable */
 
 import { ConcreteRequest } from "relay-runtime";
-import { Follow_artist$ref } from "./Follow_artist.graphql";
+import { MockQueryRenderer_related$ref } from "./MockQueryRenderer_related.graphql";
 export type MockQueryRendererTestQueryVariables = {};
 export type MockQueryRendererTestQueryResponse = {
     readonly artist: ({
         readonly name: string | null;
-        readonly " $fragmentRefs": Follow_artist$ref;
+        readonly related: ({
+            readonly " $fragmentRefs": MockQueryRenderer_related$ref;
+        }) | null;
     }) | null;
 };
 export type MockQueryRendererTestQuery = {
@@ -18,17 +20,24 @@ export type MockQueryRendererTestQuery = {
 
 /*
 query MockQueryRendererTestQuery {
-  artist(id: "blah") {
+  artist(id: "whatever") {
     name
-    ...Follow_artist
+    related {
+      ...MockQueryRenderer_related
+    }
     __id
   }
 }
 
-fragment Follow_artist on Artist {
-  __id
-  id
-  is_followed
+fragment MockQueryRenderer_related on ArtistRelatedData {
+  artists {
+    edges {
+      node {
+        banana: name
+        __id
+      }
+    }
+  }
 }
 */
 
@@ -37,7 +46,7 @@ var v0 = [
   {
     "kind": "Literal",
     "name": "id",
-    "value": "blah",
+    "value": "whatever",
     "type": "String!"
   }
 ],
@@ -60,7 +69,7 @@ return {
   "operationKind": "query",
   "name": "MockQueryRendererTestQuery",
   "id": null,
-  "text": "query MockQueryRendererTestQuery {\n  artist(id: \"blah\") {\n    name\n    ...Follow_artist\n    __id\n  }\n}\n\nfragment Follow_artist on Artist {\n  __id\n  id\n  is_followed\n}\n",
+  "text": "query MockQueryRendererTestQuery {\n  artist(id: \"whatever\") {\n    name\n    related {\n      ...MockQueryRenderer_related\n    }\n    __id\n  }\n}\n\nfragment MockQueryRenderer_related on ArtistRelatedData {\n  artists {\n    edges {\n      node {\n        banana: name\n        __id\n      }\n    }\n  }\n}\n",
   "metadata": {},
   "fragment": {
     "kind": "Fragment",
@@ -73,16 +82,27 @@ return {
         "kind": "LinkedField",
         "alias": null,
         "name": "artist",
-        "storageKey": "artist(id:\"blah\")",
+        "storageKey": "artist(id:\"whatever\")",
         "args": v0,
         "concreteType": "Artist",
         "plural": false,
         "selections": [
           v1,
           {
-            "kind": "FragmentSpread",
-            "name": "Follow_artist",
-            "args": null
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "related",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "ArtistRelatedData",
+            "plural": false,
+            "selections": [
+              {
+                "kind": "FragmentSpread",
+                "name": "MockQueryRenderer_related",
+                "args": null
+              }
+            ]
           },
           v2
         ]
@@ -98,32 +118,70 @@ return {
         "kind": "LinkedField",
         "alias": null,
         "name": "artist",
-        "storageKey": "artist(id:\"blah\")",
+        "storageKey": "artist(id:\"whatever\")",
         "args": v0,
         "concreteType": "Artist",
         "plural": false,
         "selections": [
           v1,
-          v2,
           {
-            "kind": "ScalarField",
+            "kind": "LinkedField",
             "alias": null,
-            "name": "id",
+            "name": "related",
+            "storageKey": null,
             "args": null,
-            "storageKey": null
+            "concreteType": "ArtistRelatedData",
+            "plural": false,
+            "selections": [
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "artists",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "ArtistConnection",
+                "plural": false,
+                "selections": [
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "edges",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "ArtistEdge",
+                    "plural": true,
+                    "selections": [
+                      {
+                        "kind": "LinkedField",
+                        "alias": null,
+                        "name": "node",
+                        "storageKey": null,
+                        "args": null,
+                        "concreteType": "Artist",
+                        "plural": false,
+                        "selections": [
+                          {
+                            "kind": "ScalarField",
+                            "alias": "banana",
+                            "name": "name",
+                            "args": null,
+                            "storageKey": null
+                          },
+                          v2
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
           },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "is_followed",
-            "args": null,
-            "storageKey": null
-          }
+          v2
         ]
       }
     ]
   }
 };
 })();
-(node as any).hash = '6dfa352cb78e5d3f3b71335266279f89';
+(node as any).hash = 'a25d566afd6b20307f22e3446a292948';
 export default node;

@@ -126,6 +126,7 @@ export default createFragmentContainer(Artsy.withSystemContext(FollowButton), {
       __id
       id
       is_followed
+      birthday
     }
   `,
 })

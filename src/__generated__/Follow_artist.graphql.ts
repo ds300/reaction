@@ -7,6 +7,7 @@ export type Follow_artist = {
     readonly __id: string;
     readonly id: string;
     readonly is_followed: boolean | null;
+    readonly birthday: string | null;
     readonly " $refType": Follow_artist$ref;
 };
 
@@ -39,8 +40,15 @@ const node: ConcreteFragment = {
       "name": "is_followed",
       "args": null,
       "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "birthday",
+      "args": null,
+      "storageKey": null
     }
   ]
 };
-(node as any).hash = 'e2c8c185e485a2f0cf3079ead7217a61';
+(node as any).hash = '661739e302eb525caeb50457e8271a3c';
 export default node;

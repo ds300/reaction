@@ -31,6 +31,7 @@ fragment Follow_artist on Artist {
   __id
   id
   is_followed
+  birthday
 }
 */
 
@@ -63,7 +64,7 @@ return {
   "operationKind": "query",
   "name": "ArtistFollowQuery",
   "id": null,
-  "text": "query ArtistFollowQuery(\n  $artistID: String!\n) {\n  artist(id: $artistID) {\n    ...Follow_artist\n    __id\n  }\n}\n\nfragment Follow_artist on Artist {\n  __id\n  id\n  is_followed\n}\n",
+  "text": "query ArtistFollowQuery(\n  $artistID: String!\n) {\n  artist(id: $artistID) {\n    ...Follow_artist\n    __id\n  }\n}\n\nfragment Follow_artist on Artist {\n  __id\n  id\n  is_followed\n  birthday\n}\n",
   "metadata": {},
   "fragment": {
     "kind": "Fragment",
@@ -117,6 +118,13 @@ return {
             "kind": "ScalarField",
             "alias": null,
             "name": "is_followed",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "birthday",
             "args": null,
             "storageKey": null
           }
