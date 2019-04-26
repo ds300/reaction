@@ -3,6 +3,10 @@ import {
   GraphQLNonNull,
   GraphQLObjectType,
   GraphQLType,
+  isAbstractType,
+  isInterfaceType,
+  isLeafType,
+  isNonNullType,
 } from "graphql"
 import { makeExecutableSchema } from "graphql-tools"
 import { GraphQLTaggedNode } from "react-relay"
@@ -12,6 +16,7 @@ import React from "react"
 import { Environment, RecordSource, Store } from "relay-runtime"
 import uuid from "uuid"
 import schemaText from "../../data/schema.graphql"
+import { inferConcreteTypeName } from "./inferConcreteTypeName"
 
 const schema = makeExecutableSchema({
   typeDefs: schemaText,
@@ -23,11 +28,11 @@ const schema = makeExecutableSchema({
 
 const idMap = new WeakMap()
 
-function getId(obj) {
+function getId(obj, alias) {
   if (!obj) {
     throw new Error("can't get id of " + obj)
   }
-  let id = obj.__id || idMap.get(obj)
+  let id = obj[alias] || idMap.get(obj)
   if (!id) {
     id = uuid()
     idMap.set(obj, id)
@@ -35,14 +40,93 @@ function getId(obj) {
   return id
 }
 
-// TODO: aliases
-// TODO: anonymous fragments
-// TODO: abstract types
+function resolveScalarField({
+  selection,
+  data,
+  type,
+  errors,
+  path,
+}: {
+  selection: { name?: string; alias?: string }
+  data: any
+  type: GraphQLObjectType
+  errors: string[]
+  path: string[]
+}) {
+  const alias = selection.alias || selection.name
+
+  if (selection.name === "__typename") {
+    if (isAbstractType(type)) {
+      return inferConcreteTypeName({
+        schema,
+        errors,
+        path,
+        type,
+        value: data,
+      })
+    }
+    return type.inspect()
+  }
+
+  if (selection.name === "__id" || alias === "__id") {
+    return getId(data, alias)
+  }
+
+  if (!data.hasOwnProperty(alias)) {
+    errors.push(`Can't find value at path ${path.concat([alias]).join("/")}`)
+    return null
+  }
+
+  if (!type.getFields()[selection.name]) {
+    errors.push(
+      `Can't find field def ${selection.name} in type ${type.inspect()}`
+    )
+    return null
+  }
+  let childType = type.getFields()[selection.name].type
+
+  if (isNonNullType(childType)) {
+    if (data[alias] === null) {
+      errors.push(
+        `Expecting non-null value of type ${childType.ofType.inspect()} at path ${path
+          .concat([alias])
+          .join("/")}`
+      )
+      return null
+    }
+    childType = childType.ofType
+  }
+
+  if (!isLeafType(childType)) {
+    errors.push(
+      `Expecting leaf type for field ${type.inspect()}#${
+        selection.name
+      } but got ${childType.inspect()}`
+    )
+    return null
+  }
+
+  try {
+    childType.parseValue(data[alias])
+  } catch (e) {
+    errors.push(
+      `Expected mock value of type '${type}' but got '${typeof data[
+        alias
+      ]}' at path '${path.concat([alias]).join("/")}'`
+    )
+    return null
+  }
+
+  return data[alias]
+}
+
+// TODO: improve errors
 export function maskData({
   fragment: { selections, type },
   data,
   errors,
   path,
+  variables,
 }: {
   fragment: {
     selections: Selection[]
@@ -51,9 +135,10 @@ export function maskData({
   data: any
   path: string[]
   errors: string[]
+  variables: any
 }) {
   if (typeof data === "function") {
-    data = data()
+    data = data(variables)
   }
   if (data === null) {
     if (type instanceof GraphQLNonNull) {
@@ -79,30 +164,39 @@ export function maskData({
         data: elem,
         errors,
         path: path.concat([i.toString()]),
+        variables,
       })
     )
   }
+  if (isAbstractType(type)) {
+    const typeName = inferConcreteTypeName({
+      errors,
+      path,
+      schema,
+      type,
+      value: data,
+    })
+    if (!typeName) {
+      return null
+    }
+    type = schema.getType(typeName)
+  }
   if (!(type instanceof GraphQLObjectType)) {
     errors.push(`expected object type at path ${path.join("/")}`)
-    return {}
+    return null
   }
   const result = {} as any
   for (const selection of selections) {
     const alias = selection.alias || selection.name
     switch (selection.kind) {
       case "ScalarField": {
-        // TODO: check type of value against type.getFields()[whatevs]
-        if (!data.hasOwnProperty(alias)) {
-          if (selection.name === "__id") {
-            result[alias] = getId(data)
-            break
-          }
-          errors.push(
-            `Can't find value at path ${path.concat([alias]).join("/")}`
-          )
-          break
-        }
-        result[alias] = data[alias]
+        result[alias] = resolveScalarField({
+          selection,
+          data,
+          type,
+          errors,
+          path,
+        })
         break
       }
       case "LinkedField": {
@@ -114,14 +208,20 @@ export function maskData({
           data: data[alias],
           errors,
           path: path.concat([alias]),
+          variables,
         })
         break
       }
       case "FragmentSpread": {
         const fragment = require(`__generated__/${selection.name}.graphql`)
           .default as Fragment
-        Object.defineProperty(result, `__fragment_${selection.name}`, {
-          value: maskData({
+        const fragmentType = schema.getType(fragment.type)
+        if (
+          fragmentType === type ||
+          (isInterfaceType(fragmentType) &&
+            schema.getPossibleTypes(fragmentType).includes(type))
+        ) {
+          result[`__fragment_${selection.name}`] = maskData({
             fragment: {
               selections: fragment.selections,
               type: schema.getType(fragment.type),
@@ -129,9 +229,38 @@ export function maskData({
             data,
             errors,
             path,
-          }),
-        })
+            variables,
+          })
+        }
         break
+      }
+      case "InlineFragment": {
+        const fragmentType = schema.getType(selection.type)
+        if (
+          fragmentType === type ||
+          (isInterfaceType(fragmentType) &&
+            schema.getPossibleTypes(fragmentType).includes(type))
+        ) {
+          Object.assign(
+            result,
+            maskData({
+              fragment: {
+                selections: selection.selections,
+                type,
+              },
+              data,
+              errors,
+              path,
+              variables,
+            })
+          )
+        }
+        break
+      }
+      default: {
+        // @ts-ignore
+        errors.push(`Don't know how to handle selection kind ${selection.kind}`)
+        return null
       }
     }
   }
@@ -191,6 +320,11 @@ type Selection =
       name: string
       alias: undefined
     }
+  | {
+      kind: "InlineFragment"
+      type: string
+      selections: Selection[]
+    }
 
 export function renderRelayTreeSuperFast({
   query,
@@ -214,6 +348,7 @@ export function renderRelayTreeSuperFast({
     },
     path: [],
     errors,
+    variables,
   })
 
   if (errors.length) {

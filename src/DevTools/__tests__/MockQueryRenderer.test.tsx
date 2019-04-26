@@ -6,7 +6,7 @@ import { renderRelayTreeSuperFast } from "../MockQueryRenderer"
 jest.unmock("react-relay")
 
 jest.mock("relay-runtime/lib/RelayModernFragmentSpecResolver", () => {
-  return require("../__mocks__/RelayModernFragmentSpecResolver")
+  return require("DevTools/__mocks__/RelayModernFragmentSpecResolver")
 })
 
 const Component = createFragmentContainer(
@@ -39,6 +39,9 @@ describe(renderRelayTreeSuperFast, () => {
             related {
               ...MockQueryRenderer_related
             }
+            ... on Artist {
+              birthday
+            }
           }
         }
       `,
@@ -48,6 +51,7 @@ describe(renderRelayTreeSuperFast, () => {
             artists: { edges: [{ node: { banana: "David O'Doherty" } }] },
           },
           name: "Banksface",
+          birthday: "today",
         },
       },
     })

@@ -19,6 +19,9 @@ import { OrderAppTestPage } from "./Utils/OrderAppTestPage"
 
 jest.mock("Apps/Order/Utils/trackPageView")
 jest.unmock("react-relay")
+jest.mock("relay-runtime/lib/RelayModernFragmentSpecResolver", () => {
+  return require("DevTools/__mocks__/RelayModernFragmentSpecResolver")
+})
 
 class StatusTestPage extends OrderAppTestPage {
   get messageText() {

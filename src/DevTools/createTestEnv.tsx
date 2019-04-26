@@ -5,6 +5,7 @@ import React, { ReactElement, useContext } from "react"
 import { GraphQLTaggedNode } from "react-relay"
 import { Network } from "relay-runtime"
 import { Breakpoint } from "Utils/Responsive"
+import { renderRelayTreeSuperFast } from "./MockQueryRenderer"
 import { RootTestPage } from "./RootTestPage"
 
 class Mutations<MutationNames extends string> {
@@ -153,7 +154,7 @@ class TestEnv<MutationNames extends string, TestPage extends RootTestPage> {
     })
 
     // @ts-ignore
-    page.root = await renderRelayTree({
+    page.root = await renderRelayTreeSuperFast({
       Component: (props: any) => {
         // MockBoot overwrites system context, but we want to preserve the
         // context set higher in the tree by MockQueryRenderer
@@ -174,9 +175,8 @@ class TestEnv<MutationNames extends string, TestPage extends RootTestPage> {
           </MockBoot>
         )
       },
-
       query,
-      mockNetwork,
+      data: { ...defaultData, ...mockData },
     })
 
     return page as any

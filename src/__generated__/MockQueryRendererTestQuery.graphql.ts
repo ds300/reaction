@@ -9,6 +9,7 @@ export type MockQueryRendererTestQueryResponse = {
         readonly related: ({
             readonly " $fragmentRefs": MockQueryRenderer_related$ref;
         }) | null;
+        readonly birthday: string | null;
     }) | null;
 };
 export type MockQueryRendererTestQuery = {
@@ -25,6 +26,7 @@ query MockQueryRendererTestQuery {
     related {
       ...MockQueryRenderer_related
     }
+    birthday
     __id
   }
 }
@@ -60,6 +62,13 @@ v1 = {
 v2 = {
   "kind": "ScalarField",
   "alias": null,
+  "name": "birthday",
+  "args": null,
+  "storageKey": null
+},
+v3 = {
+  "kind": "ScalarField",
+  "alias": null,
   "name": "__id",
   "args": null,
   "storageKey": null
@@ -69,7 +78,7 @@ return {
   "operationKind": "query",
   "name": "MockQueryRendererTestQuery",
   "id": null,
-  "text": "query MockQueryRendererTestQuery {\n  artist(id: \"whatever\") {\n    name\n    related {\n      ...MockQueryRenderer_related\n    }\n    __id\n  }\n}\n\nfragment MockQueryRenderer_related on ArtistRelatedData {\n  artists {\n    edges {\n      node {\n        banana: name\n        __id\n      }\n    }\n  }\n}\n",
+  "text": "query MockQueryRendererTestQuery {\n  artist(id: \"whatever\") {\n    name\n    related {\n      ...MockQueryRenderer_related\n    }\n    birthday\n    __id\n  }\n}\n\nfragment MockQueryRenderer_related on ArtistRelatedData {\n  artists {\n    edges {\n      node {\n        banana: name\n        __id\n      }\n    }\n  }\n}\n",
   "metadata": {},
   "fragment": {
     "kind": "Fragment",
@@ -104,7 +113,8 @@ return {
               }
             ]
           },
-          v2
+          v2,
+          v3
         ]
       }
     ]
@@ -167,7 +177,7 @@ return {
                             "args": null,
                             "storageKey": null
                           },
-                          v2
+                          v3
                         ]
                       }
                     ]
@@ -176,12 +186,13 @@ return {
               }
             ]
           },
-          v2
+          v2,
+          v3
         ]
       }
     ]
   }
 };
 })();
-(node as any).hash = 'a25d566afd6b20307f22e3446a292948';
+(node as any).hash = '57581f25cba36db3cf3d79ef67cfb8d0';
 export default node;
