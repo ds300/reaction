@@ -68,20 +68,20 @@ describe("Status", () => {
   describe("offers", () => {
     it("should should have a title containing status", async () => {
       expect(env.headTags.length).toEqual(0)
-      await env.buildPage()
+      env.buildPage()
       expect(env.headTags.length).toEqual(1)
       expect(render(env.headTags[0]).text()).toBe("Offer status | Artsy")
     })
 
     describe("submitted", () => {
       it("should say order submitted and have message box", async () => {
-        const page = await env.buildPage()
+        const page = env.buildPage()
         expect(page.text()).toContain("Your offer has been submitted")
         page.expectMessage()
       })
 
       it("should not warn the user about having the artwork bought while artwork is not available for buy now", async () => {
-        const page = await buildPageWithOrder(
+        const page = buildPageWithOrder(
           produce(testOrder, order => {
             order.lineItems.edges[0].node.artwork.is_acquireable = false
           })
@@ -91,13 +91,13 @@ describe("Status", () => {
       })
 
       it("should show a note section", async () => {
-        const page = await env.buildPage()
+        const page = env.buildPage()
         expect(page.text()).toContain("Your noteAnother note!")
         page.expectMessage()
       })
 
       it("should not show a note section if none exists", async () => {
-        const page = await buildPageWithOrder(
+        const page = buildPageWithOrder(
           produce(testOrder, order => {
             order.lastOffer.note = null
           })
@@ -108,7 +108,7 @@ describe("Status", () => {
 
     describe("approved", () => {
       it("should say confirmed and have message box", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...OfferOrderWithShippingDetails,
           ...PaymentDetails,
           state: "APPROVED",
@@ -120,7 +120,7 @@ describe("Status", () => {
 
     describe("fulfilled (ship)", () => {
       it("should say order has shipped and have message box", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...OfferOrderWithShippingDetails,
           ...PaymentDetails,
           state: "FULFILLED",
@@ -130,7 +130,7 @@ describe("Status", () => {
       })
 
       it("should not contain a note section", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...OfferOrderWithShippingDetails,
           ...PaymentDetails,
           state: "FULFILLED",
@@ -141,7 +141,7 @@ describe("Status", () => {
 
     describe("fulfilled (pickup)", () => {
       it("should say order has been picked up and NOT have message box", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...OfferOrderPickup,
           ...PaymentDetails,
           state: "FULFILLED",
@@ -153,7 +153,7 @@ describe("Status", () => {
 
     describe("buyer rejected", () => {
       it("should say that offer was declined", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...OfferOrderPickup,
           ...PaymentDetails,
           state: "CANCELED",
@@ -166,7 +166,7 @@ describe("Status", () => {
 
     describe("seller rejected", () => {
       it("should say that offer was declined", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...OfferOrderPickup,
           ...PaymentDetails,
           state: "CANCELED",
@@ -179,7 +179,7 @@ describe("Status", () => {
 
     describe("seller lapsed", () => {
       it("should say that offer expired", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...OfferOrderPickup,
           ...PaymentDetails,
           state: "CANCELED",
@@ -192,7 +192,7 @@ describe("Status", () => {
 
     describe("buyer lapsed", () => {
       it("should say that offer expired", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...OfferOrderPickup,
           ...PaymentDetails,
           state: "CANCELED",
@@ -205,7 +205,7 @@ describe("Status", () => {
 
     describe("refunded", () => {
       it("should say that order was canceled", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...OfferOrderPickup,
           ...PaymentDetails,
           state: "REFUNDED",
@@ -217,7 +217,7 @@ describe("Status", () => {
 
     describe("canceled after accept", () => {
       it("should say that order was canceled", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...OfferOrderPickup,
           ...PaymentDetails,
           state: "CANCELED",
@@ -233,14 +233,14 @@ describe("Status", () => {
   describe("orders", () => {
     it("should should have a title containing status", async () => {
       expect(env.headTags.length).toEqual(0)
-      await env.buildPage({ mockData: { order: BuyOrderWithShippingDetails } })
+      env.buildPage({ mockData: { order: BuyOrderWithShippingDetails } })
       expect(env.headTags.length).toEqual(1)
       expect(render(env.headTags[0]).text()).toBe("Order status | Artsy")
     })
 
     describe("submitted", () => {
       it("should say order submitted and have message box", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...BuyOrderWithShippingDetails,
           ...PaymentDetails,
           state: "SUBMITTED",
@@ -252,7 +252,7 @@ describe("Status", () => {
 
     describe("approved", () => {
       it("should say confirmed", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...BuyOrderWithShippingDetails,
           ...PaymentDetails,
           state: "APPROVED",
@@ -263,7 +263,7 @@ describe("Status", () => {
 
     describe("fulfilled (ship)", () => {
       it("should say order has shipped and have message box", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...BuyOrderWithShippingDetails,
           ...PaymentDetails,
           state: "FULFILLED",
@@ -275,7 +275,7 @@ describe("Status", () => {
 
     describe("fulfilled (pickup)", () => {
       it("should say order has been picked up and NOT have message box", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...BuyOrderPickup,
           ...PaymentDetails,
           state: "FULFILLED",
@@ -287,7 +287,7 @@ describe("Status", () => {
 
     describe("canceled (ship)", () => {
       it("should say that order was canceled", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...BuyOrderWithShippingDetails,
           ...PaymentDetails,
           state: "CANCELED",
@@ -299,7 +299,7 @@ describe("Status", () => {
 
     describe("canceled (pickup)", () => {
       it("should say that order was canceled", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...BuyOrderPickup,
           ...PaymentDetails,
           state: "CANCELED",
@@ -311,7 +311,7 @@ describe("Status", () => {
 
     describe("refunded", () => {
       it("should say that order was canceled", async () => {
-        const page = await buildPageWithOrder({
+        const page = buildPageWithOrder({
           ...BuyOrderPickup,
           ...PaymentDetails,
           state: "REFUNDED",
@@ -323,7 +323,7 @@ describe("Status", () => {
   })
 
   it("tracks a pageview", async () => {
-    await env.buildPage()
+    env.buildPage()
 
     expect(trackPageView).toHaveBeenCalledTimes(1)
   })

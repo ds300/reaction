@@ -107,7 +107,7 @@ class TestEnv<MutationNames extends string, TestPage extends RootTestPage> {
    * @param opts.mockMutationResults supplementary mutation results to use
    * @param opts.breakpoint set the breakpoint for the page
    */
-  buildPage = async ({
+  buildPage = ({
     mockData,
     mockMutationResults,
     breakpoint,
@@ -115,7 +115,7 @@ class TestEnv<MutationNames extends string, TestPage extends RootTestPage> {
     mockData?: object
     mockMutationResults?: Record<MutationNames, any>
     breakpoint?: Breakpoint
-  } = {}): Promise<TestPage> => {
+  } = {}): TestPage => {
     const {
       Component,
       // tslint:disable-next-line:no-shadowed-variable
@@ -154,7 +154,7 @@ class TestEnv<MutationNames extends string, TestPage extends RootTestPage> {
     })
 
     // @ts-ignore
-    page.root = await renderRelayTreeSuperFast({
+    page.root = renderRelayTreeSuperFast({
       Component: (props: any) => {
         // MockBoot overwrites system context, but we want to preserve the
         // context set higher in the tree by MockQueryRenderer
