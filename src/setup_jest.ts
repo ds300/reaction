@@ -69,3 +69,173 @@ if (process.env.ALLOW_CONSOLE_LOGS !== "true") {
     done() // it is important to call this here or every test will timeout
   })
 }
+
+jest.mock("styled-components", () => {
+  const tags = [
+    "a",
+    "abbr",
+    "address",
+    "area",
+    "article",
+    "aside",
+    "audio",
+    "b",
+    "base",
+    "bdi",
+    "bdo",
+    "blockquote",
+    "body",
+    "br",
+    "button",
+    "canvas",
+    "caption",
+    "cite",
+    "code",
+    "col",
+    "colgroup",
+    "data",
+    "datalist",
+    "dd",
+    "del",
+    "details",
+    "dfn",
+    "dialog",
+    "div",
+    "dl",
+    "dt",
+    "em",
+    "embed",
+    "fieldset",
+    "figcaption",
+    "figure",
+    "footer",
+    "form",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "head",
+    "header",
+    "hgroup",
+    "hr",
+    "html",
+    "i",
+    "iframe",
+    "img",
+    "input",
+    "ins",
+    "kbd",
+    "keygen",
+    "label",
+    "legend",
+    "li",
+    "link",
+    "main",
+    "map",
+    "mark",
+    "math",
+    "menu",
+    "menuitem",
+    "meta",
+    "meter",
+    "nav",
+    "noscript",
+    "object",
+    "ol",
+    "optgroup",
+    "option",
+    "output",
+    "p",
+    "param",
+    "picture",
+    "pre",
+    "progress",
+    "q",
+    "rb",
+    "rp",
+    "rt",
+    "rtc",
+    "ruby",
+    "s",
+    "samp",
+    "script",
+    "section",
+    "select",
+    "slot",
+    "small",
+    "source",
+    "span",
+    "strong",
+    "style",
+    "sub",
+    "summary",
+    "sup",
+    "svg",
+    "table",
+    "tbody",
+    "td",
+    "template",
+    "textarea",
+    "tfoot",
+    "th",
+    "thead",
+    "time",
+    "title",
+    "tr",
+    "track",
+    "u",
+    "ul",
+    "var",
+    "video",
+    "wbr",
+  ]
+  const { getPropertyInfo } = require("DevTools/HTMLProperties")
+  // tslint:disable-next-line:no-shadowed-variable
+  const React = require("react")
+  /**
+   * Removes entries from an object based on a list of keys
+   */
+  const omitNonHtmlProps = (obj: object) => {
+    const next = {}
+    for (const key of Object.keys(obj)) {
+      if (getPropertyInfo(key)) {
+        next[key] = obj[key]
+      }
+    }
+    return next
+  }
+  const sf = f =>
+    Object.assign(f, {
+      withConfig: () => sf(f),
+      attrs: props => {
+        return sf(() => {
+          const C = f()
+          return _props => React.createElement(C, { ...props, ..._props })
+        })
+      },
+    })
+  const styled = C => sf(() => C)
+  tags.forEach(
+    tag =>
+      (styled[tag] = sf(() =>
+        React.forwardRef((props, ref) =>
+          React.createElement(tag, { ref, ...omitNonHtmlProps(props) })
+        )
+      ))
+  )
+
+  const Noop = ({ children }) => children || null
+
+  return {
+    createGlobalStyle: () => Noop,
+    default: styled,
+    css: () => [],
+    __esModule: true,
+    keyframes: () => [],
+    injectGlobalStyles: () => ({ GlobalStyles: Noop }),
+    Theme: Noop,
+    ThemeProvider: Noop,
+  }
+})

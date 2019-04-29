@@ -221,7 +221,15 @@ export function maskData({
           (isInterfaceType(fragmentType) &&
             schema.getPossibleTypes(fragmentType).includes(type))
         ) {
-          result[`__fragment_${selection.name}`] = maskData({
+          if (!result.__fragments) {
+            result.__fragments = {}
+          }
+          // relay needs fragment-containing objects to have an __id
+          // https://github.com/facebook/relay/blob/master/packages/relay-runtime/store/RelayModernSelector.js#L75
+          if (!result.__id) {
+            result.__id = getId(result, "__id")
+          }
+          result.__fragments[selection.name] = maskData({
             fragment: {
               selections: fragment.selections,
               type: schema.getType(fragment.type),
@@ -271,6 +279,12 @@ export function maskData({
 const network = async () => ({})
 const source = new RecordSource()
 const store = new Store(source)
+store.lookup = function lookup(selector) {
+  if (selector.variables) {
+    return { data: selector.variables }
+  }
+  throw new Error("what")
+} as any
 const environment = new Environment({
   network,
   store,
@@ -324,6 +338,8 @@ type Selection =
       kind: "InlineFragment"
       type: string
       selections: Selection[]
+      name: undefined
+      alias: undefined
     }
 
 export function renderRelayTreeSuperFast({
