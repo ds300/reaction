@@ -130,16 +130,9 @@ function traverse({
       continue
     }
 
-    if (findReferencesResult.length > 1) {
-      errors.push(
-        `⁉️ Found multiple definitions for field at path ${fieldPath}.`
-      )
-      continue
-    }
-
-    const [{ references }] = findReferencesResult
-
-    if (references.length === 1) {
+    if (
+      findReferencesResult.every(({ references }) => references.length === 1)
+    ) {
       errors.push(
         `${chalk.gray("Possibly unused field at path")} ${fieldPath}.`
       )
@@ -164,7 +157,6 @@ function traverse({
 
 ts.transform(sources as ts.SourceFile[], [
   context => file => {
-    const errors = []
     const result = ts.visitEachChild(
       file,
       node => {
@@ -173,6 +165,7 @@ ts.transform(sources as ts.SourceFile[], [
         if (ts.isTypeAliasDeclaration(node)) {
           if (node.name.getText().match(/^\w+_\w+$/)) {
             // e.g. Reject_order but not Reject_order$ref
+            const errors = []
             const typeNode = node.getChildren().find(ts.isTypeNode)
             if (!typeNode) {
               console.error(
@@ -186,21 +179,74 @@ ts.transform(sources as ts.SourceFile[], [
               errors,
               path: [node.name.getText()],
             })
+
+            if (errors.length) {
+              // find definition of fragment
+              const refs = services.findReferences(
+                file.fileName,
+                node.name.getStart()
+              )
+              if (!refs) {
+                throw new Error(
+                  `Can't find references to ${node.name.getStart()}`
+                )
+              }
+              const fileNames = ([] as string[])
+                .concat(
+                  ...refs.map(({ references }) =>
+                    references.map(r => r.fileName)
+                  )
+                )
+                .filter(fn => !fn.endsWith(".graphql.ts"))
+              let loc: {
+                fileName: string
+                line: number
+                column: number
+              } = null
+              for (const fileName of fileNames) {
+                const text = fs.readFileSync(fileName).toString()
+                const idx = text.indexOf("fragment " + node.name.getText())
+                if (idx !== -1) {
+                  let line = 1
+                  let column = 0
+                  let char = idx
+                  while (char >= 0 && text[char] !== "\n") {
+                    char--
+                    column++
+                  }
+                  line++
+                  while (char-- > 0) {
+                    if (text[char] === "\n") {
+                      line++
+                    }
+                  }
+                  loc = {
+                    fileName,
+                    line,
+                    column,
+                  }
+                  break
+                }
+              }
+
+              let path = relative(
+                process.cwd(),
+                (loc && loc.fileName) || file.fileName
+              )
+              if (loc) {
+                path += ":" + loc.line + ":" + loc.column
+              }
+
+              console.log("⚠️ ", chalk.cyan.bold(path))
+              console.log(errors.map(line => "  " + line).join("\n"))
+              console.log()
+            }
           }
         }
         return node
       },
       context
     )
-
-    if (errors.length) {
-      console.log(
-        "⚠️ ",
-        chalk.cyan.bold(relative(process.cwd(), file.fileName))
-      )
-      console.log(errors.map(line => "  " + line).join("\n"))
-      console.log()
-    }
 
     return result
   },
