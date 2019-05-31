@@ -133,9 +133,7 @@ function traverse({
     if (
       findReferencesResult.every(({ references }) => references.length === 1)
     ) {
-      errors.push(
-        `${chalk.gray("Possibly unused field at path")} ${fieldPath}.`
-      )
+      errors.push(`${chalk.gray("Possibly unused field")} ${fieldPath}`)
       continue
     }
 
@@ -240,7 +238,8 @@ ts.transform(sources as ts.SourceFile[], [
 
               console.log(
                 "⚠️ ",
-                chalk.yellow.bold(fragmentName),
+                chalk.bold(fragmentName),
+                "→",
                 chalk.cyan(path)
               )
               console.log(errors.map(line => "  " + line).join("\n"))
