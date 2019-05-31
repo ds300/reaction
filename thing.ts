@@ -165,19 +165,20 @@ ts.transform(sources as ts.SourceFile[], [
         if (ts.isTypeAliasDeclaration(node)) {
           if (node.name.getText().match(/^\w+_\w+$/)) {
             // e.g. Reject_order but not Reject_order$ref
+            const fragmentName = node.name.getText()
             const errors = []
             const typeNode = node.getChildren().find(ts.isTypeNode)
             if (!typeNode) {
               console.error(
                 "Can't find type expression for type ",
-                node.name.getText()
+                fragmentName
               )
               return
             }
             traverse({
               typeNode,
               errors,
-              path: [node.name.getText()],
+              path: [],
             })
 
             if (errors.length) {
@@ -205,7 +206,7 @@ ts.transform(sources as ts.SourceFile[], [
               } = null
               for (const fileName of fileNames) {
                 const text = fs.readFileSync(fileName).toString()
-                const idx = text.indexOf("fragment " + node.name.getText())
+                const idx = text.indexOf("fragment " + fragmentName)
                 if (idx !== -1) {
                   let line = 1
                   let column = 0
@@ -237,7 +238,11 @@ ts.transform(sources as ts.SourceFile[], [
                 path += ":" + loc.line + ":" + loc.column
               }
 
-              console.log("⚠️ ", chalk.cyan.bold(path))
+              console.log(
+                "⚠️ ",
+                chalk.yellow.bold(fragmentName),
+                chalk.cyan(path)
+              )
               console.log(errors.map(line => "  " + line).join("\n"))
               console.log()
             }
